@@ -9,11 +9,18 @@ import AIAssistantDrawer from '../components/AIAssistantDrawer';
 import ConsoleOutput from '../components/ConsoleOutput';
 import { initSocket } from '../socket';
 
+const TEMPLATES = {
+  javascript: `// JavaScript (Node.js)\n\nfunction main() {\n  console.log("Hello from JavaScript!");\n}\n\nmain();\n`,
+  java: `// Java (JDK 25)\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello from Java (JDK 25)!");\n    }\n}\n`
+};
+
 const EditorPage = () => {
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
   const consoleRef = useRef(null);
-  const codeRef = useRef('// Start coding here...\n\nfunction main() {\n  console.log("Hello, CodeCollab!");\n}\n\nmain();\n');
+  const [language, setLanguage] = useState('javascript');
+  const [codeValue, setCodeValue] = useState(TEMPLATES.javascript);
+  const codeRef = useRef(TEMPLATES.javascript);
   const location = useLocation();
   const { roomId } = useParams();
   const navigate = useNavigate();
@@ -108,17 +115,28 @@ const EditorPage = () => {
   const handleRunCode = useCallback(() => {
     setIsConsoleExpanded(true);
     setTimeout(() => {
-      consoleRef.current?.run();
+      consoleRef.current?.run(codeRef.current, language);
     }, 50);
-  }, []);
+  }, [language]);
 
   const toggleConsole = useCallback(() => {
     setIsConsoleExpanded((prev) => !prev);
   }, []);
 
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    setLanguage(newLang);
+    const template = TEMPLATES[newLang] || '';
+    codeRef.current = template;
+    setCodeValue(template);
+    toast.success(`Switched to ${newLang === 'java' ? 'Java (JDK 25)' : 'JavaScript'}`);
+  };
+
   if (!location.state) {
     return <Navigate to="/" />;
   }
+
+  const filename = language === 'java' ? 'Main.java' : 'index.js';
 
   return (
     <div className="mainWrap">
@@ -173,7 +191,17 @@ const EditorPage = () => {
       <main className="editorWrap">
         <header className="workspaceToolbar">
           <div className="toolbarLeft">
-            <span className="editorFileTab">index.js</span>
+            <span className="editorFileTab">{filename}</span>
+            <div className="langSelectWrap">
+              <select
+                className="langSelect"
+                value={language}
+                onChange={handleLanguageChange}
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="java">Java (JDK 25)</option>
+              </select>
+            </div>
             <button className="toolBtn runHeaderBtn" onClick={handleRunCode}>
               Run Code
             </button>
@@ -198,7 +226,8 @@ const EditorPage = () => {
           <Editor
             socket={socket}
             roomId={roomId}
-            initialCode={codeRef.current}
+            initialCode={codeValue}
+            language={language}
             onCodeChange={(newCode) => {
               codeRef.current = newCode;
             }}
@@ -209,7 +238,8 @@ const EditorPage = () => {
         {/* In-Browser Execution Terminal */}
         <ConsoleOutput
           ref={consoleRef}
-          code={codeRef.current}
+          getCode={() => codeRef.current}
+          language={language}
           isExpanded={isConsoleExpanded}
           onToggle={toggleConsole}
         />

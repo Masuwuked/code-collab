@@ -1,14 +1,17 @@
 /**
- * CodeCollab AI - Backend Server
+ * CodeCollab - Backend Server
  * 
  * Manages WebSocket connections via Socket.IO, room-based state isolation,
- * real-time code broadcasting, operational concurrency, and peer messaging.
+ * multi-language code compilation (Java JDK 25 & JavaScript), and peer messaging.
  */
 
 const express = require('express');
 const http = require('http');
 const path = require('path');
 const cors = require('cors');
+const fs = require('fs');
+const os = require('os');
+const { exec } = require('child_process');
 const { Server } = require('socket.io');
 const ACTIONS = require('./src/Actions');
 
@@ -24,6 +27,64 @@ const io = new Server(server, {
   }
 });
 
+// Multi-language code execution endpoint
+app.post('/api/execute', (req, res) => {
+  const { language = 'javascript', code = '' } = req.body;
+  const startTime = Date.now();
+
+  if (!code || !code.trim()) {
+    return res.json({ success: true, output: '(No code provided)', duration: 0 });
+  }
+
+  if (language === 'java') {
+    // Dynamically extract class name from user code or fallback to 'Main'
+    const classMatch = code.match(/public\s+class\s+([A-Za-z0-9_]+)/) || code.match(/class\s+([A-Za-z0-9_]+)/);
+    const className = classMatch ? classMatch[1] : 'Main';
+
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'collab_java_'));
+    const filePath = path.join(tempDir, `${className}.java`);
+    fs.writeFileSync(filePath, code);
+
+    // Compile Java with native javac
+    exec(`javac "${filePath}"`, { timeout: 10000 }, (compileErr, stdout, stderr) => {
+      if (compileErr) {
+        try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
+        return res.json({
+          success: false,
+          output: stderr || compileErr.message,
+          duration: Date.now() - startTime
+        });
+      }
+
+      // Run Java with native java runtime
+      exec(`java -cp "${tempDir}" ${className}`, { timeout: 10000 }, (runErr, runStdout, runStderr) => {
+        try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
+        const output = runStdout || runStderr || (runErr ? runErr.message : '(Process finished with no output)');
+        return res.json({
+          success: !runErr,
+          output: output.trim(),
+          duration: Date.now() - startTime
+        });
+      });
+    });
+  } else {
+    // JavaScript execution via Node.js
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'collab_js_'));
+    const filePath = path.join(tempDir, 'script.js');
+    fs.writeFileSync(filePath, code);
+
+    exec(`node "${filePath}"`, { timeout: 10000 }, (err, stdout, stderr) => {
+      try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
+      const output = stdout || stderr || (err ? err.message : '(Process finished with no output)');
+      return res.json({
+        success: !err,
+        output: output.trim(),
+        duration: Date.now() - startTime
+      });
+    });
+  }
+});
+
 // Serve frontend build
 app.use(express.static(path.join(__dirname, 'build')));
 app.use((req, res, next) => {
@@ -36,9 +97,6 @@ app.use((req, res, next) => {
 // In-memory mapping of active socket sessions
 const userSocketMap = {};
 
-/**
- * Retrieves all unique connected clients for a specific room ID
- */
 function getAllConnectedClients(roomId) {
   const roomSockets = io.sockets.adapter.rooms.get(roomId) || new Set();
   return Array.from(roomSockets).map((socketId) => ({
@@ -48,14 +106,12 @@ function getAllConnectedClients(roomId) {
 }
 
 io.on('connection', (socket) => {
-  // 1. User joins a collaboration room
   socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
     userSocketMap[socket.id] = username;
     socket.join(roomId);
 
     const clients = getAllConnectedClients(roomId);
 
-    // Broadcast to all participants in this room (including the newly joined client)
     io.in(roomId).emit(ACTIONS.JOINED, {
       clients,
       username,
@@ -63,17 +119,14 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 2. Real-time code change broadcast
   socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
     socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
   });
 
-  // 3. State synchronization for late-joining clients
   socket.on(ACTIONS.SYNC_CODE, ({ socketId, code }) => {
     io.to(socketId).emit(ACTIONS.CODE_CHANGE, { code });
   });
 
-  // 4. Real-time room chat message
   socket.on(ACTIONS.CHAT_MESSAGE, ({ roomId, message, username, timestamp }) => {
     io.to(roomId).emit(ACTIONS.CHAT_MESSAGE, {
       username,
@@ -83,7 +136,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // 5. Handling disconnection & cleanup
   socket.on('disconnecting', () => {
     const rooms = [...socket.rooms].filter((room) => room !== socket.id);
 
@@ -106,5 +158,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`[CodeCollab AI] Backend server running on port ${PORT}`);
+  console.log(`[CodeCollab] Backend server running on port ${PORT}`);
 });
