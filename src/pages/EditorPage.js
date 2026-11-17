@@ -54,7 +54,7 @@ const EditorPage = () => {
         }
 
         const uniqueClients = connectedClients.filter(
-          (c, idx, arr) => idx === arr.findIndex((x) => x.username === c.username)
+          (c, idx, arr) => idx === arr.findIndex((x) => x.socketId === c.socketId)
         );
         setClients(uniqueClients);
 

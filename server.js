@@ -55,13 +55,11 @@ io.on('connection', (socket) => {
 
     const clients = getAllConnectedClients(roomId);
 
-    // Notify all participants in the room of the new user
-    clients.forEach(({ socketId }) => {
-      io.to(socketId).emit(ACTIONS.JOINED, {
-        clients,
-        username,
-        socketId: socket.id
-      });
+    // Broadcast to all participants in this room (including the newly joined client)
+    io.in(roomId).emit(ACTIONS.JOINED, {
+      clients,
+      username,
+      socketId: socket.id
     });
   });
 
