@@ -1,5 +1,5 @@
 /**
- * CodeCollab AI - Code Intelligence & Copilot Engine
+ * CodeCollab - Minimal AI Copilot Engine
  */
 
 import { analyzeCodeQuality } from './mlAnalyzer';
@@ -7,136 +7,117 @@ import { analyzeCodeQuality } from './mlAnalyzer';
 export async function askCodeAssistant(action, code, customPrompt = '') {
   const analysis = analyzeCodeQuality(code);
 
-  await new Promise(resolve => setTimeout(resolve, 350));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   if (!code || code.trim().length === 0) {
     return {
-      title: 'Empty File',
-      content: 'Please write or paste some code in the editor first so the AI engine can analyze it.'
+      title: 'Empty Document',
+      content: 'Write or paste code into the editor to run the Copilot analysis.'
     };
   }
 
   switch (action) {
     case 'EXPLAIN': {
       return {
-        title: '🤖 Algorithmic Explanation & Structure Analysis',
-        content: `### 📌 Code Structure & Overview
-- **Lines of Code (LOC):** ${analysis.loc} (${analysis.nonBlankLoc} logical lines)
-- **Algorithmic Time Complexity:** **${analysis.bigO.notation}** (${analysis.bigO.category})
-- **Cyclomatic Complexity ($M$):** **${analysis.cyclomaticComplexity}** (${analysis.cyclomaticComplexity <= 5 ? 'Clean / Low Decision Branching' : 'High Branching Density'})
-- **Maintainability Index:** **${analysis.maintainabilityIndex}/100**
+        title: 'Code Architecture & Complexity Analysis',
+        content: `Lines of Code: ${analysis.loc} (${analysis.nonBlankLoc} logical)
+Estimated Time Complexity: ${analysis.bigO.notation} (${analysis.bigO.category})
+Cyclomatic Complexity: M = ${analysis.cyclomaticComplexity}
+Maintainability Index: ${analysis.maintainabilityIndex} / 100
 
-### 🧠 Logic Walkthrough:
+Explanation:
 ${analysis.bigO.explanation}
 
-The code defines key functional pathways with **${analysis.halstead.vocabulary}** unique programmatic symbols and an estimated development effort of **${analysis.halstead.effort}** mental operations.`
+The program defines ${analysis.halstead.vocabulary} unique symbols with an estimated Halstead volume of ${analysis.halstead.volume}.`
       };
     }
 
     case 'OPTIMIZE': {
       const suggestions = [];
       if (analysis.cyclomaticComplexity > 6) {
-        suggestions.push('• **Reduce Decision Branches:** Replace nested if-else ladders with guard clauses (early returns) or lookup dictionaries to lower cyclomatic complexity.');
+        suggestions.push('- Reduce conditional branch nesting by using guard clauses (early returns).');
       }
       if (analysis.maxNesting > 2) {
-        suggestions.push('• **Flatten Deep Nesting:** Scope nesting is currently depth ' + analysis.maxNesting + '. Extract inner routines into modular helper functions.');
+        suggestions.push('- Max nesting depth is ' + analysis.maxNesting + '. Extract deeply nested blocks into helper routines.');
       }
       if (analysis.bigO.notation === 'O(n²)' || analysis.bigO.notation === 'O(n³)') {
-        suggestions.push('• **Algorithmic Reduction:** Transform nested iterations into a single pass using a `Map` or `Set` lookup to achieve $O(n)$ linear complexity.');
+        suggestions.push('- Convert nested loops into single-pass lookups using Map or Set to reach O(n) linear performance.');
       }
       if (suggestions.length === 0) {
-        suggestions.push('• **Memory & Execution:** Modern engine V8 optimizations applied. Consider using typed arrays or immutable patterns if dealing with high-throughput streaming data.');
+        suggestions.push('- Code structure is optimal. Ensure inputs are bounded to prevent memory pressure.');
       }
 
       return {
-        title: '⚡ Optimization Recommendations',
-        content: `### 🚀 Performance & Refactoring Strategy
-- **Current Asymptotic Complexity:** \`${analysis.bigO.notation}\`
-- **Current Halstead Volume ($V$):** \`${analysis.halstead.volume}\`
+        title: 'Optimization Suggestions',
+        content: `Current Complexity: ${analysis.bigO.notation}
+Halstead Volume: ${analysis.halstead.volume}
 
-#### Recommended Actions:
-${suggestions.join('\n\n')}
+Recommended Refactorings:
+${suggestions.join('\n')}
 
-#### Refactored Pattern (Best Practice):
-\`\`\`javascript
-// Suggested Clean Architecture Refactor:
+Example Refactoring Pattern:
 // 1. Guard clauses for early exit
-// 2. High-order functions (map/filter/reduce) or Set lookups for O(1) checks
-\`\`\``
+// 2. High-order functions (map, filter, reduce) or Map/Set lookups for O(1) checks`
       };
     }
 
-    case 'SECURITY': {
-      const criticalSmells = analysis.codeSmells.filter(s => s.severity === 'critical' || s.severity === 'high');
+    case 'BUGS': {
       return {
-        title: '🛡️ Security & Vulnerability Audit',
-        content: `### 🔍 Automated Vulnerability Scan Report
-- **Overall Defect Risk:** **${analysis.defectRisk}** (${analysis.defectProbability}% risk probability)
-- **Detected Code Smells / Risks:** **${analysis.codeSmells.length}** issues flagged.
+        title: 'Code Defect & Security Audit',
+        content: `Identified Issues: ${analysis.codeSmells.length}
 
-#### Breakdown:
 ${analysis.codeSmells.length === 0 
-  ? '✅ **Clean Scan:** No immediate high-severity security anti-patterns (such as raw `eval()` or unescaped HTML injections) were found.'
-  : analysis.codeSmells.map(s => `- **[Line ${s.line}] ${s.type} (${s.severity.toUpperCase()}):** ${s.message}`).join('\n')}
+  ? 'No critical antipatterns found. Code follows standard conventions.'
+  : analysis.codeSmells.map(s => `[Line ${s.line}] ${s.type} (${s.severity.toUpperCase()}): ${s.message}`).join('\n')}
 
-#### OWASP Top 10 Checklist:
-- [x] Injection Mitigation: ${criticalSmells.length === 0 ? 'Passed' : 'Action Required'}
-- [x] Error Handling: ${analysis.codeSmells.some(s => s.type.includes('Error')) ? 'Empty catch blocks detected' : 'Standard'}
-- [x] Input Validation: Recommended to enforce schema boundaries (e.g. Zod or Joi validation).`
+Quality Checklist:
+- Error Handling: ${analysis.codeSmells.some(s => s.type.includes('Error')) ? 'Empty catch block detected' : 'OK'}
+- Type Safety: ${analysis.codeSmells.some(s => s.type.includes('Coercion')) ? 'Use strict equality (===)' : 'OK'}
+- Security Injection: ${analysis.codeSmells.some(s => s.severity === 'critical') ? 'Action required' : 'OK'}`
       };
     }
 
     case 'TESTS': {
       return {
-        title: '🧪 Automated Unit Test Suite Generation',
-        content: `### 📋 Generated Jest / Mocha Test Harness
-Based on the current function signatures and branch paths ($M = ${analysis.cyclomaticComplexity}$), here is the generated test suite:
-
-\`\`\`javascript
-describe('CodeCollab Automated Test Suite', () => {
-  // Test Case 1: Standard input execution
-  test('should execute with standard input without throwing', () => {
+        title: 'Generated Unit Tests (Jest)',
+        content: `describe('Automated Test Suite', () => {
+  test('executes standard input successfully', () => {
     expect(() => {
-      // Execute primary routine
+      // Execute main routine
     }).not.toThrow();
   });
 
-  // Test Case 2: Boundary / Edge cases
-  test('should gracefully handle edge cases (null, empty, zero values)', () => {
-    const edgeInputs = [null, undefined, '', 0, []];
-    edgeInputs.forEach(input => {
-      // Verify defensive guarding
+  test('handles edge cases gracefully (null, empty, zero)', () => {
+    const edgeCases = [null, undefined, '', 0, []];
+    edgeCases.forEach(input => {
+      // Verify defensive input handling
     });
   });
 
-  // Test Case 3: Performance benchmark
-  test('should execute within acceptable time limit (< 50ms)', () => {
+  test('completes within target latency (< 50ms)', () => {
     const start = performance.now();
     // Run execution
-    const duration = performance.now() - start;
-    expect(duration).toBeLessThan(50);
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(50);
   });
-});
-\`\`\`
-`
+});`
       };
     }
 
     case 'CUSTOM':
     default: {
       return {
-        title: `🤖 AI Assistant: "${customPrompt.slice(0, 30)}..."`,
-        content: `### Query Response
-**User Query:** *"${customPrompt}"*
+        title: `Query: "${customPrompt.slice(0, 30)}"`,
+        content: `Response for: "${customPrompt}"
 
-**Contextual Analysis:**
-Your code has **${analysis.loc} lines**, estimated **${analysis.bigO.notation}** time complexity, and a Maintainability Index of **${analysis.maintainabilityIndex}/100**.
+Context:
+- File Length: ${analysis.loc} lines
+- Complexity: ${analysis.bigO.notation}
 
-**Insights:**
-To implement *" ${customPrompt} "*:
-1. Ensure inputs are validated prior to execution.
+Recommendations:
+1. Validate inputs prior to execution.
 2. Keep state mutations isolated to pure functions.
-3. Utilize asynchronous patterns (\`async/await\`) if interacting with I/O or the WebSocket layer.`
+3. Use async/await for asynchronous routines.`
       };
     }
   }

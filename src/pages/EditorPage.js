@@ -5,6 +5,7 @@ import ACTIONS from '../Actions';
 import Client from '../components/Client';
 import Editor from '../components/Editor';
 import ChatDrawer from '../components/ChatDrawer';
+import AIAssistantDrawer from '../components/AIAssistantDrawer';
 import { initSocket } from '../socket';
 
 const EditorPage = () => {
@@ -17,6 +18,7 @@ const EditorPage = () => {
 
   const [clients, setClients] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isAiOpen, setIsAiOpen] = useState(false);
 
   useEffect(() => {
     let currentSocket = null;
@@ -163,6 +165,9 @@ const EditorPage = () => {
             <button className="toolBtn" onClick={copyRoomId}>
               Copy Invite
             </button>
+            <button className="toolBtn copilotBtn" onClick={() => setIsAiOpen(true)}>
+              Copilot
+            </button>
             <button className="toolBtn" onClick={() => setIsChatOpen(true)}>
               Chat
             </button>
@@ -180,6 +185,13 @@ const EditorPage = () => {
           />
         </div>
       </main>
+
+      {/* AI Copilot Drawer */}
+      <AIAssistantDrawer
+        isOpen={isAiOpen}
+        onClose={() => setIsAiOpen(false)}
+        code={codeRef.current}
+      />
 
       {/* Team Chat Drawer */}
       <ChatDrawer

@@ -551,6 +551,186 @@ body {
   color: #a7f3d0;
 }
 
+.toolBtn.copilotBtn {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: var(--accent-cyan);
+}
+.toolBtn.copilotBtn:hover {
+  background: rgba(56, 189, 248, 0.22);
+}
+
+/* AI Copilot Drawer */
+.aiDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aiDrawer {
+  width: 400px;
+  max-width: 90vw;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  animation: slideInRight 0.2s ease;
+}
+
+.aiDrawerHeader {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aiHeaderTitle h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.aiActionTabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.aiTabBtn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 7px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.aiTabBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.aiTabBtn.active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.aiDrawerContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.aiLoadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 10px;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.aiSpinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.aiPromptIntro {
+  padding: 30px 10px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.aiPromptIntro h4 {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+.aiPromptIntro p {
+  font-size: 12px;
+}
+
+.aiResultBox {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 14px;
+}
+
+.aiResultTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.aiResultMarkdown pre {
+  white-space: pre-wrap;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+.aiInputForm {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 8px;
+  background: var(--bg-surface);
+}
+
+.aiTextInput {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: var(--text-main);
+  font-size: 13px;
+  outline: none;
+}
+
+.aiTextInput:focus {
+  border-color: var(--primary);
+}
+
+.aiSubmitBtn {
+  background: var(--primary);
+  color: #0d1117;
+  border: none;
+  border-radius: 6px;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 .chatEmpty {
   color: var(--text-muted);
   font-size: 13px;

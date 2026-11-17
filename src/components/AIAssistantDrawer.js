@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { askCodeAssistant } from '../utils/aiAssistant';
 
-const AIAssistantDrawer = ({ isOpen, onClose, code, defaultAction = 'EXPLAIN' }) => {
-  const [activeTab, setActiveTab] = useState(defaultAction);
+const AIAssistantDrawer = ({ isOpen, onClose, code }) => {
+  const [activeAction, setActiveAction] = useState('EXPLAIN');
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [customPrompt, setCustomPrompt] = useState('');
+  const [prompt, setPrompt] = useState('');
 
-  const handleAction = async (action, prompt = '') => {
-    setActiveTab(action);
+  const runAction = async (action, customText = '') => {
+    setActiveAction(action);
     setLoading(true);
     setResponse(null);
     try {
-      const res = await askCodeAssistant(action, code, prompt);
+      const res = await askCodeAssistant(action, code, customText);
       setResponse(res);
     } catch (err) {
       setResponse({
         title: 'Error',
-        content: 'Failed to process AI response: ' + err.message
+        content: err.message
       });
     } finally {
       setLoading(false);
@@ -26,8 +26,8 @@ const AIAssistantDrawer = ({ isOpen, onClose, code, defaultAction = 'EXPLAIN' })
 
   const handleCustomSubmit = (e) => {
     e.preventDefault();
-    if (!customPrompt.trim()) return;
-    handleAction('CUSTOM', customPrompt);
+    if (!prompt.trim()) return;
+    runAction('CUSTOM', prompt);
   };
 
   if (!isOpen) return null;
@@ -37,36 +37,35 @@ const AIAssistantDrawer = ({ isOpen, onClose, code, defaultAction = 'EXPLAIN' })
       <div className="aiDrawer">
         <div className="aiDrawerHeader">
           <div className="aiHeaderTitle">
-            <span className="aiPulse">🤖</span>
-            <h3>AI Copilot & Code Intelligence</h3>
+            <h3>AI Copilot</h3>
           </div>
           <button className="closeDrawerBtn" onClick={onClose}>✕</button>
         </div>
 
         <div className="aiActionTabs">
-          <button 
-            className={`aiTabBtn ${activeTab === 'EXPLAIN' ? 'active' : ''}`}
-            onClick={() => handleAction('EXPLAIN')}
+          <button
+            className={`aiTabBtn ${activeAction === 'EXPLAIN' ? 'active' : ''}`}
+            onClick={() => runAction('EXPLAIN')}
           >
-            🧠 Explain & Big-O
+            Explain
           </button>
-          <button 
-            className={`aiTabBtn ${activeTab === 'SECURITY' ? 'active' : ''}`}
-            onClick={() => handleAction('SECURITY')}
+          <button
+            className={`aiTabBtn ${activeAction === 'BUGS' ? 'active' : ''}`}
+            onClick={() => runAction('BUGS')}
           >
-            🛡️ Security Audit
+            Find Bugs
           </button>
-          <button 
-            className={`aiTabBtn ${activeTab === 'OPTIMIZE' ? 'active' : ''}`}
-            onClick={() => handleAction('OPTIMIZE')}
+          <button
+            className={`aiTabBtn ${activeAction === 'OPTIMIZE' ? 'active' : ''}`}
+            onClick={() => runAction('OPTIMIZE')}
           >
-            ⚡ Refactor & Optimize
+            Optimize
           </button>
-          <button 
-            className={`aiTabBtn ${activeTab === 'TESTS' ? 'active' : ''}`}
-            onClick={() => handleAction('TESTS')}
+          <button
+            className={`aiTabBtn ${activeAction === 'TESTS' ? 'active' : ''}`}
+            onClick={() => runAction('TESTS')}
           >
-            🧪 Generate Tests
+            Unit Tests
           </button>
         </div>
 
@@ -74,15 +73,14 @@ const AIAssistantDrawer = ({ isOpen, onClose, code, defaultAction = 'EXPLAIN' })
           {loading && (
             <div className="aiLoadingState">
               <div className="aiSpinner"></div>
-              <p>Analyzing AST structure, control flow graphs, and feature weights...</p>
+              <p>Analyzing code structure...</p>
             </div>
           )}
 
           {!loading && !response && (
             <div className="aiPromptIntro">
-              <div className="introIcon">💡</div>
-              <h4>Select an AI Analysis Mode</h4>
-              <p>Choose an automated action above or ask a custom question about the current code below.</p>
+              <h4>Select an action</h4>
+              <p>Choose an analysis mode above or ask a question below.</p>
             </div>
           )}
 
@@ -100,9 +98,9 @@ const AIAssistantDrawer = ({ isOpen, onClose, code, defaultAction = 'EXPLAIN' })
           <input
             type="text"
             className="aiTextInput"
-            placeholder="Ask AI Copilot about the code..."
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder="Ask Copilot about this code..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
           />
           <button type="submit" className="aiSubmitBtn" disabled={loading}>
             Send
