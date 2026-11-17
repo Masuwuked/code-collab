@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 
-const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
+const ConsoleOutput = forwardRef(({ code, isExpanded, onToggle }, ref) => {
   const [logs, setLogs] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
   const [executionTime, setExecutionTime] = useState(null);
@@ -44,7 +44,7 @@ const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
       if (result !== undefined) {
         capturedLogs.push({
           type: 'return',
-          text: `↪ Result: ${typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)}`
+          text: `Result: ${typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result)}`
         });
       }
     } catch (err) {
@@ -63,6 +63,10 @@ const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
     }
   };
 
+  useImperativeHandle(ref, () => ({
+    run: runCode
+  }));
+
   const clearConsole = () => {
     setLogs([]);
     setExecutionTime(null);
@@ -72,21 +76,20 @@ const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
     <div className={`consoleContainer ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="consoleHeader">
         <div className="consoleTitle" onClick={onToggle}>
-          <span className="terminalIcon">💻</span>
-          <span>Execution Output Terminal</span>
+          <span className="terminalLabel">Terminal</span>
           {executionTime && (
-            <span className="execBadge">⏱️ {executionTime} ms</span>
+            <span className="execBadge">{executionTime} ms</span>
           )}
         </div>
         <div className="consoleControls">
           <button className="runCodeBtn" onClick={runCode} disabled={isRunning}>
-            {isRunning ? 'Running...' : '▶ Run Code (Ctrl+Enter)'}
+            {isRunning ? 'Running...' : 'Run Code'}
           </button>
           <button className="clearConsoleBtn" onClick={clearConsole} title="Clear Terminal">
             Clear
           </button>
           <button className="toggleConsoleBtn" onClick={onToggle}>
-            {isExpanded ? '▼ Hide' : '▲ Terminal'}
+            {isExpanded ? 'Hide' : 'Show Terminal'}
           </button>
         </div>
       </div>
@@ -95,12 +98,12 @@ const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
         <div className="consoleBody">
           {logs.length === 0 ? (
             <div className="consoleEmpty">
-              Terminal ready. Click <strong>"▶ Run Code"</strong> to execute JavaScript in the editor.
+              Terminal ready. Click 'Run Code' or press Ctrl+Enter to execute JavaScript.
             </div>
           ) : (
             logs.map((log, index) => (
               <div key={index} className={`consoleRow ${log.type}`}>
-                <span className="consolePrompt">{log.type === 'error' ? '✖' : log.type === 'warn' ? '⚠' : '>'}</span>
+                <span className="consolePrompt">{log.type === 'error' ? 'x' : log.type === 'warn' ? '!' : '>'}</span>
                 <pre className="consoleText">{log.text}</pre>
               </div>
             ))
@@ -109,6 +112,6 @@ const ConsoleOutput = ({ code, isExpanded, onToggle }) => {
       )}
     </div>
   );
-};
+});
 
 export default ConsoleOutput;

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useLocation, useNavigate, Navigate, useParams } from 'react-router-dom';
 import ACTIONS from '../Actions';
@@ -6,11 +6,13 @@ import Client from '../components/Client';
 import Editor from '../components/Editor';
 import ChatDrawer from '../components/ChatDrawer';
 import AIAssistantDrawer from '../components/AIAssistantDrawer';
+import ConsoleOutput from '../components/ConsoleOutput';
 import { initSocket } from '../socket';
 
 const EditorPage = () => {
   const [socket, setSocket] = useState(null);
   const socketRef = useRef(null);
+  const consoleRef = useRef(null);
   const codeRef = useRef('// Start coding here...\n\nfunction main() {\n  console.log("Hello, CodeCollab!");\n}\n\nmain();\n');
   const location = useLocation();
   const { roomId } = useParams();
@@ -19,6 +21,7 @@ const EditorPage = () => {
   const [clients, setClients] = useState([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAiOpen, setIsAiOpen] = useState(false);
+  const [isConsoleExpanded, setIsConsoleExpanded] = useState(false);
 
   useEffect(() => {
     let currentSocket = null;
@@ -102,6 +105,17 @@ const EditorPage = () => {
     navigate('/');
   };
 
+  const handleRunCode = useCallback(() => {
+    setIsConsoleExpanded(true);
+    setTimeout(() => {
+      consoleRef.current?.run();
+    }, 50);
+  }, []);
+
+  const toggleConsole = useCallback(() => {
+    setIsConsoleExpanded((prev) => !prev);
+  }, []);
+
   if (!location.state) {
     return <Navigate to="/" />;
   }
@@ -160,6 +174,12 @@ const EditorPage = () => {
         <header className="workspaceToolbar">
           <div className="toolbarLeft">
             <span className="editorFileTab">index.js</span>
+            <button className="toolBtn runHeaderBtn" onClick={handleRunCode}>
+              Run Code
+            </button>
+            <button className={`toolBtn ${isConsoleExpanded ? 'active' : ''}`} onClick={toggleConsole}>
+              Terminal
+            </button>
           </div>
           <div className="toolbarRight">
             <button className="toolBtn" onClick={copyRoomId}>
@@ -182,8 +202,17 @@ const EditorPage = () => {
             onCodeChange={(newCode) => {
               codeRef.current = newCode;
             }}
+            onRun={handleRunCode}
           />
         </div>
+
+        {/* In-Browser Execution Terminal */}
+        <ConsoleOutput
+          ref={consoleRef}
+          code={codeRef.current}
+          isExpanded={isConsoleExpanded}
+          onToggle={toggleConsole}
+        />
       </main>
 
       {/* AI Copilot Drawer */}

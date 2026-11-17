@@ -731,6 +731,165 @@ body {
   cursor: pointer;
 }
 
+.toolBtn.runHeaderBtn {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.toolBtn.runHeaderBtn:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.toolBtn.active {
+  background: var(--bg-hover);
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+/* Console Output Terminal */
+.consoleContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  z-index: 20;
+  transition: height 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.consoleContainer.collapsed {
+  height: 36px;
+}
+
+.consoleContainer.expanded {
+  height: 200px;
+}
+
+.consoleHeader {
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  background: #11151c;
+}
+
+.consoleTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.terminalLabel {
+  color: var(--text-main);
+}
+
+.execBadge {
+  font-size: 11px;
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Fira Code', monospace;
+}
+
+.consoleControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runCodeBtn {
+  background: var(--primary);
+  color: #0d1117;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.runCodeBtn:hover {
+  background: var(--primary-hover);
+}
+
+.clearConsoleBtn,
+.toggleConsoleBtn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.clearConsoleBtn:hover,
+.toggleConsoleBtn:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+
+.consoleBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px;
+  background: #090d13;
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.consoleEmpty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.consoleRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.consolePrompt {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.consoleText {
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-main);
+  font-family: inherit;
+}
+
+.consoleRow.error .consoleText,
+.consoleRow.error .consolePrompt {
+  color: var(--accent-rose);
+}
+
+.consoleRow.warn .consoleText,
+.consoleRow.warn .consolePrompt {
+  color: #f59e0b;
+}
+
+.consoleRow.return .consoleText {
+  color: var(--accent-cyan);
+}
+
 .chatEmpty {
   color: var(--text-muted);
   font-size: 13px;

@@ -7,7 +7,7 @@ import 'codemirror/addon/edit/closetag';
 import 'codemirror/addon/edit/closebrackets';
 import ACTIONS from '../Actions';
 
-const Editor = ({ socket, roomId, onCodeChange, initialCode }) => {
+const Editor = ({ socket, roomId, onCodeChange, initialCode, onRun }) => {
   const editorRef = useRef(null);
   const textAreaRef = useRef(null);
   const isInternalChange = useRef(false);
@@ -29,6 +29,14 @@ const Editor = ({ socket, roomId, onCodeChange, initialCode }) => {
       autoCloseBrackets: true,
       lineNumbers: true,
       lineWrapping: true,
+      extraKeys: {
+        'Ctrl-Enter': () => {
+          if (onRun) onRun();
+        },
+        'Cmd-Enter': () => {
+          if (onRun) onRun();
+        }
+      }
     });
 
     // Listen to local user changes
